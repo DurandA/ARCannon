@@ -13,16 +13,14 @@ public class ASR : MonoBehaviour {
 	// -----------------------------------------------------------------------------
 	// Variables.
 	// -----------------------------------------------------------------------------
-
-	//public GUIText stext;
-	//public GUIText dbLevelStr;
+	
 	private bool dbLevelOn = false;
 	private double dbLevel = 0f;
 
-	private string msg = "Hello world";
-
 	private AndroidJavaClass unityPlayer;
 	private AndroidJavaObject activity;
+
+	public CannonBehaviour currentCannon;
 
 	// -----------------------------------------------------------------------------
 	// Load Android ASR plugin.
@@ -36,33 +34,15 @@ public class ASR : MonoBehaviour {
 
 	void Update()
 	{
-		if (dbLevelOn == true)
-		{
-			activity.Call("getAmplitude", "");
-		}
+
 	}
 
 	void OnGUI(){
-
-		GUI.Button(new Rect(10, Screen.height - 100, (int) (dbLevel / 10), 300), "");
-
+		
 		if (GUI.Button(new Rect(10, 200, 500, 300), "START ASR"))
 		{
 			startASR();
 		}
-
-		if (GUI.Button(new Rect(10, 570, 500, 300), "GET DB LEVEL"))
-		{
-			if(dbLevelOn == false)
-			{
-				startAudioRecorder();
-			}
-			else
-			{
-				stopAudioRecorder();
-			}
-		}
-		GUI.Label (new Rect(200, 10, 100, 20), msg);
 	}
 
 	// -----------------------------------------------------------------------------
@@ -97,38 +77,86 @@ public class ASR : MonoBehaviour {
 
 	private void onDebugFromPlugin(string msg)
 	{
-		//stext.text = "DEBUG : " + msg;
+
 	}
 	
 	private void onReadyForSpeech(string msg)
 	{
-		//stext.text = msg;
+
 	}
 
 	private void onBeginningOfSpeech(string msg)
 	{
-		//stext.text = msg;
+
 	}
 
 	private void onEndOfSpeech(string msg)
 	{
-		//stext.text = msg;
+
 	}
 
 	private void onSpeechCancelled(string msg)
 	{
-		//stext.text = msg;
+
 	}
 
 	private void onResultsReceived(string msg)
 	{
-		this.msg = msg;
-		//Regex regex =  new Regex();
-		//stext.text = "Results : " + msg + " || Type : " + regex.interpret(msg);
+		Regex regex =  new Regex();
+		Order[] order = regex.interpret(msg);
+
+		if(order != null)
+		{
+			for(int i = 0 ; i < order.Length ; i++)
+			{
+				if(order[i].getOrientation() != -6)
+				{
+					currentCannon.StartCoroutine(currentCannon.MoveTowards(orderToVector2D(order[i]),1f));
+				}
+
+			}
+		}
 	}
 
 	private void onErrorReceived(string msg)
 	{
-		//stext.text = "Error : " + msg;
+
+	}
+
+	// -----------------------------------------------------------------------------
+	// Order to vector 2D.
+	// -----------------------------------------------------------------------------
+
+	private Vector2 orderToVector2D(Order order)
+	{
+		Vector2 vector = new Vector2();
+		float x = 0.0f;
+		float y = 0.0f;
+
+		if(order.getOrientation() == 2 || order.getOrientation() == -2)
+		{
+			if(order.getOrientation() > 0)
+			{
+				y = order.getAngle()* (-1);
+			}
+			else
+			{
+				y = order.getAngle();
+			}
+		}
+		else
+		{
+			if(order.getOrientation() > 0)
+			{
+				x = order.getAngle()* (-1);
+			}
+			else
+			{
+				x = order.getAngle();
+			}
+		}
+
+		vector.Set(x, y);
+		return vector;
 	}
 }

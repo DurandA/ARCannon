@@ -8,8 +8,6 @@ public class CannonBehaviour : MonoBehaviour {
 	public Transform deck;
 	public Rigidbody projectile;
 
-	public float power=80f;
-
 	private Vector3[] trace=new Vector3[256];
 	private LineRenderer lineRenderer;
 
@@ -32,7 +30,7 @@ public class CannonBehaviour : MonoBehaviour {
 	
 	}
 
-	IEnumerator MoveTowards (Vector2 direction, float playbackSpeed){
+	public IEnumerator MoveTowards (Vector2 direction, float playbackSpeed){
 		float t = Time.time;
 		float u = Time.time;
 
@@ -58,12 +56,12 @@ public class CannonBehaviour : MonoBehaviour {
 		#endif
 		
 		if (GUI.Button (new Rect (10, 10, 50, 50), "Fire")) {
-			Fire();
+			Fire(80f);
 		}
 
 	}
 
-	void Fire (){
+	public void Fire (float power){
 		Rigidbody clone;
 		clone = Instantiate(projectile, output.position, output.rotation) as Rigidbody;
 		clone.transform.localScale = projectile.transform.localScale;
