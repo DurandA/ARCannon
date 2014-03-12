@@ -7,6 +7,9 @@ public class CannonBehaviour : MonoBehaviour {
 	public Transform shaft;
 	public Transform deck;
 	public Rigidbody projectile;
+
+	public float power=80f;
+
 	private Vector3[] trace=new Vector3[256];
 	private LineRenderer lineRenderer;
 
@@ -64,7 +67,7 @@ public class CannonBehaviour : MonoBehaviour {
 		Rigidbody clone;
 		clone = Instantiate(projectile, output.position, output.rotation) as Rigidbody;
 		clone.transform.localScale = projectile.transform.localScale;
-		clone.velocity = output.TransformDirection(Vector3.forward * 10);
+		clone.velocity = output.TransformDirection(Vector3.forward * power);
 
 		StartCoroutine(TraceProjectile(clone.transform));
 	}
