@@ -3,11 +3,20 @@ using System.Collections;
 
 public class CannonBehaviour : MonoBehaviour {
 
+	// -----------------------------------------------------------------------------
+	// Variables.
+	// -----------------------------------------------------------------------------
+
 	public Transform output;
 	public Transform shaft;
 	public Transform deck;
 	public Rigidbody projectile;
 
+	// Sounds.
+	public AudioSource audio;
+	private AudioController sounds;
+
+	// Trace.
 	private Vector3[] trace=new Vector3[256];
 	private LineRenderer lineRenderer;
 
@@ -15,7 +24,11 @@ public class CannonBehaviour : MonoBehaviour {
 	string xRot = "0";
 	string yRot = "0";
 	#endif
-	
+
+	// -----------------------------------------------------------------------------
+	// Unity life cycle.
+	// -----------------------------------------------------------------------------
+
 	// Use this for initialization
 	void Start () {
 		lineRenderer = gameObject.AddComponent<LineRenderer>();
@@ -23,6 +36,8 @@ public class CannonBehaviour : MonoBehaviour {
 		lineRenderer.SetColors(Color.red, Color.yellow);
 		lineRenderer.SetWidth(0.2F, 0.2F);
 		lineRenderer.enabled = false;
+
+		sounds = audio.GetComponent<AudioController>();
 	}
 	
 	// Update is called once per frame
@@ -45,6 +60,10 @@ public class CannonBehaviour : MonoBehaviour {
 		}
 	}
 
+	// -----------------------------------------------------------------------------
+	// GUI.
+	// -----------------------------------------------------------------------------
+
 	void OnGUI () {
 		#if UNITY_EDITOR
 		xRot = GUI.TextField(new Rect(10, 80, 40, 20), xRot, 3);
@@ -56,10 +75,15 @@ public class CannonBehaviour : MonoBehaviour {
 		#endif
 		
 		if (GUI.Button (new Rect (10, 10, 50, 50), "Fire")) {
+			FireSound();
 			Fire(80f);
 		}
 
 	}
+
+	// -----------------------------------------------------------------------------
+	// Firing functions.
+	// -----------------------------------------------------------------------------
 
 	public void Fire (float power){
 		Rigidbody clone;
@@ -82,5 +106,11 @@ public class CannonBehaviour : MonoBehaviour {
 			lineRenderer.SetPosition (j, trace [j]);
 		}
 		lineRenderer.enabled = true;
+	}
+
+	// For animation purposes, we took the sound activation in a separate function.
+	public void FireSound()
+	{
+		sounds.Fire();
 	}
 }

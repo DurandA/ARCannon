@@ -267,6 +267,7 @@ MonoBehaviour:
   shaft: {fileID: 400004}
   deck: {fileID: 400006}
   projectile: {fileID: 5400000, guid: 3f640dc52f12eb3459f29f0f5f9c31c0, type: 2}
+  audio: {fileID: 0}
 --- !u!1001 &100100000
 Prefab:
   m_ObjectHideFlags: 1

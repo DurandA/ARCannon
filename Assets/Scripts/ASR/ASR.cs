@@ -21,6 +21,8 @@ public class ASR : MonoBehaviour {
 	private AndroidJavaObject activity;
 
 	public CannonBehaviour currentCannon;
+	public AudioSource audio;
+	private AudioController sounds;
 
 	// -----------------------------------------------------------------------------
 	// Load Android ASR plugin.
@@ -30,6 +32,8 @@ public class ASR : MonoBehaviour {
 	{
 		unityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
 		activity = unityPlayer.GetStatic<AndroidJavaObject>("currentActivity");
+
+		sounds = audio.GetComponent<AudioController>();
 	}
 
 	void Update()
@@ -100,6 +104,7 @@ public class ASR : MonoBehaviour {
 
 	}
 
+	// Called when the ASR results are received.
 	private void onResultsReceived(string msg)
 	{
 		Regex regex =  new Regex();
@@ -107,14 +112,7 @@ public class ASR : MonoBehaviour {
 
 		if(order != null)
 		{
-			for(int i = 0 ; i < order.Length ; i++)
-			{
-				if(order[i].getOrientation() != -6)
-				{
-					currentCannon.StartCoroutine(currentCannon.MoveTowards(orderToVector2D(order[i]),1f));
-				}
-
-			}
+			currentCannon.StartCoroutine(currentCannon.MoveTowards(orderToVector2D(order),1f));
 		}
 	}
 
@@ -127,35 +125,54 @@ public class ASR : MonoBehaviour {
 	// Order to vector 2D.
 	// -----------------------------------------------------------------------------
 
-	private Vector2 orderToVector2D(Order order)
+	private Vector2 orderToVector2D(Order[] order)
 	{
 		Vector2 vector = new Vector2();
 		float x = 0.0f;
 		float y = 0.0f;
 
-		if(order.getOrientation() == 2 || order.getOrientation() == -2)
+		// Combine orders if many available.
+		for(int i = 0 ; i < order.Length ; i++)
 		{
-			if(order.getOrientation() > 0)
+			if(order[i].getOrientation() != -6)
 			{
-				y = order.getAngle()* (-1);
+				// Order understood.
+				if(order[i].getOrientation() == 2 || order[i].getOrientation() == -2)
+				{
+					// Set direction on y.
+					if(order[i].getOrientation() > 0)
+					{
+						y += order[i].getAngle()* (-1);
+					}
+					else
+					{
+						y += order[i].getAngle();
+					}
+				}
+				else if(order[i].getOrientation() == 1 || order[i].getOrientation() == -1)
+				{
+					// Set direction on x.
+					if(order[i].getOrientation() > 0)
+					{
+						x += order[i].getAngle()* (-1);
+					}
+					else
+					{
+						x += order[i].getAngle();
+					}
+				}
+
+				// Understood = true;
+				sounds.OrderHit();
 			}
 			else
 			{
-				y = order.getAngle();
-			}
-		}
-		else
-		{
-			if(order.getOrientation() > 0)
-			{
-				x = order.getAngle()* (-1);
-			}
-			else
-			{
-				x = order.getAngle();
+				// Understood = false;
+				sounds.OrderMiss();
 			}
 		}
 
+		// Return the commands for the cannon.
 		vector.Set(x, y);
 		return vector;
 	}
