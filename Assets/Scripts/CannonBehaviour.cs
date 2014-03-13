@@ -12,10 +12,6 @@ public class CannonBehaviour : MonoBehaviour {
 	public Transform deck;
 	public Rigidbody projectile;
 
-	// Sounds.
-	public AudioSource audio;
-	private AudioController sounds;
-
 	// Trace.
 	private Vector3[] trace=new Vector3[256];
 	private LineRenderer lineRenderer;
@@ -36,8 +32,6 @@ public class CannonBehaviour : MonoBehaviour {
 		lineRenderer.SetColors(Color.red, Color.yellow);
 		lineRenderer.SetWidth(0.2F, 0.2F);
 		lineRenderer.enabled = false;
-
-		sounds = audio.GetComponent<AudioController>();
 	}
 	
 	// Update is called once per frame
@@ -73,12 +67,6 @@ public class CannonBehaviour : MonoBehaviour {
 			StartCoroutine(MoveTowards(new Vector2(int.Parse(xRot),int.Parse(yRot)),1f));
 		}
 		#endif
-		
-		if (GUI.Button (new Rect (10, 10, 50, 50), "Fire")) {
-			FireSound();
-			Fire(80f);
-		}
-
 	}
 
 	// -----------------------------------------------------------------------------
@@ -106,11 +94,5 @@ public class CannonBehaviour : MonoBehaviour {
 			lineRenderer.SetPosition (j, trace [j]);
 		}
 		lineRenderer.enabled = true;
-	}
-
-	// For animation purposes, we took the sound activation in a separate function.
-	public void FireSound()
-	{
-		sounds.Fire();
 	}
 }

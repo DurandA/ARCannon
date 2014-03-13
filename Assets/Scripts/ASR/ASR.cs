@@ -21,6 +21,7 @@ public class ASR : MonoBehaviour {
 	private AndroidJavaObject activity;
 
 	public CannonBehaviour currentCannon;
+
 	public AudioSource audio;
 	private AudioController sounds;
 
@@ -43,9 +44,14 @@ public class ASR : MonoBehaviour {
 
 	void OnGUI(){
 		
-		if (GUI.Button(new Rect(10, 200, 500, 300), "START ASR"))
+		if (GUI.Button(new Rect(Screen.width - 410, Screen.height - 450, 400, 400), "START ASR"))
 		{
 			startASR();
+		}
+
+		else if (GUI.Button (new Rect (10, Screen.height - 450, 400, 400), "Fire")) {
+			sounds.Fire();
+			currentCannon.Fire(80f);
 		}
 	}
 
