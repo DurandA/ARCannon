@@ -16,6 +16,8 @@ public class ASR : MonoBehaviour {
 	
 	private bool dbLevelOn = false;
 	private double dbLevel = 0f;
+	private double dbLevelSmoothed = 0f;	//<-- use this for the level amplitude bar.
+	private double[] levelSmoothing;
 
 	private AndroidJavaClass unityPlayer;
 	private AndroidJavaObject activity;
@@ -23,7 +25,8 @@ public class ASR : MonoBehaviour {
 	public CannonBehaviour currentCannon;
 
 	public AudioSource audio;
-	private AudioController sounds;
+	private AxisAudioController axisSounds;
+	private AlliesAudioController alliesSounds;
 
 	// -----------------------------------------------------------------------------
 	// Load Android ASR plugin.
@@ -34,15 +37,20 @@ public class ASR : MonoBehaviour {
 		unityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
 		activity = unityPlayer.GetStatic<AndroidJavaObject>("currentActivity");
 
-		sounds = audio.GetComponent<AudioController>();
-	}
+		levelSmoothing = new double[5];
 
-	void Update()
-	{
+		for(int i = 0 ; i < levelSmoothing.Length ; i++)
+		{
+			levelSmoothing[i] = .0d;
+		}
 
+		axisSounds = audio.GetComponent<AxisAudioController>();
+		alliesSounds = audio.GetComponent<AlliesAudioController>();
 	}
 
 	void OnGUI(){
+
+		dbLevelOn = false;
 		
 		if (GUI.Button(new Rect(Screen.width - 410, Screen.height - 450, 400, 400), "START ASR"))
 		{
@@ -50,13 +58,13 @@ public class ASR : MonoBehaviour {
 		}
 
 		else if (GUI.Button (new Rect (10, Screen.height - 450, 400, 400), "Fire")) {
-			sounds.Fire();
+			axisSounds.Fire();
 			currentCannon.Fire(80f);
 		}
 	}
 
 	// -----------------------------------------------------------------------------
-	// Function.
+	// Audio functions.
 	// -----------------------------------------------------------------------------
 
 	void startASR()
@@ -66,8 +74,10 @@ public class ASR : MonoBehaviour {
 
 	void startAudioRecorder()
 	{
-		activity.Call("startDBMeter", "");
-		dbLevelOn = true;
+		while(dbLevelOn == true)
+		{
+			activity.Call("startDBMeter", "");
+		}
 	}
 
 	void stopAudioRecorder()
@@ -83,6 +93,21 @@ public class ASR : MonoBehaviour {
 	private void storeAmplitude(string msg)
 	{
 		this.dbLevel = float.Parse(msg);
+
+		double sum = .0d;
+		
+		// Shift values in the table.
+		for(int i = 1 ; i < levelSmoothing.Length ; i++)
+		{
+			levelSmoothing[i-1] = levelSmoothing[i];
+			sum+= levelSmoothing[i-1];
+		}
+		
+		levelSmoothing[levelSmoothing.Length -1] = dbLevel;
+		sum += dbLevel;
+		
+		// Compute the average.
+		dbLevelSmoothed = sum / levelSmoothing.Length;
 	}
 
 	private void onDebugFromPlugin(string msg)
@@ -169,12 +194,12 @@ public class ASR : MonoBehaviour {
 				}
 
 				// Understood = true;
-				sounds.OrderHit();
+				axisSounds.OrderHit();
 			}
 			else
 			{
 				// Understood = false;
-				sounds.OrderMiss();
+				axisSounds.OrderMiss();
 			}
 		}
 
