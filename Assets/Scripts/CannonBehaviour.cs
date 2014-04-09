@@ -3,16 +3,14 @@ using System.Collections;
 
 public class CannonBehaviour : MonoBehaviour {
 
-	// -----------------------------------------------------------------------------
-	// Variables.
-	// -----------------------------------------------------------------------------
-
 	public Transform output;
 	public Transform shaft;
 	public Transform deck;
 	public Rigidbody projectile;
 
-	// Trace.
+	public Vector2 joyDirection;
+	public Vector2 asyncDirection;
+
 	private Vector3[] trace=new Vector3[256];
 	private LineRenderer lineRenderer;
 
@@ -20,10 +18,6 @@ public class CannonBehaviour : MonoBehaviour {
 	string xRot = "0";
 	string yRot = "0";
 	#endif
-
-	// -----------------------------------------------------------------------------
-	// Unity life cycle.
-	// -----------------------------------------------------------------------------
 
 	// Use this for initialization
 	void Start () {
@@ -36,27 +30,27 @@ public class CannonBehaviour : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-	
+		joyDirection = new Vector2 (Input.GetAxisRaw("Horizontal")*180,Input.GetAxisRaw("Vertical")*180);
+		deck.localRotation = Quaternion.Euler (0f, 0f, joyDirection.x) * Quaternion.Euler (0f, 0f, asyncDirection.x);
+		shaft.localRotation = Quaternion.Euler (joyDirection.y, 0f, 0f) * Quaternion.Euler (asyncDirection.y, 0f, 0f);
+	}
+
+	public void SetPosition (Vector2 position){
+
 	}
 
 	public IEnumerator MoveTowards (Vector2 direction, float playbackSpeed){
 		float t = Time.time;
 		float u = Time.time;
 
-		Quaternion initialShaftRot = shaft.localRotation;
-		Quaternion initialDeckRot = deck.localRotation;
-
+		Vector2 initialDirection = new Vector2 (asyncDirection.x, asyncDirection.y);
 		while ((u - t) * playbackSpeed<1f) {
-			shaft.localRotation = Quaternion.Lerp (initialShaftRot, initialShaftRot * Quaternion.Euler(direction.x,0f,0f), (u - t) * playbackSpeed);
-			deck.localRotation = Quaternion.Lerp (initialDeckRot, initialDeckRot * Quaternion.Euler(0f,0f,direction.y), (u - t) * playbackSpeed);
+			asyncDirection = Vector2.Lerp (initialDirection, initialDirection + direction, (u - t) * playbackSpeed);
+
 			u = Time.time;
 			yield return 0;
 		}
 	}
-
-	// -----------------------------------------------------------------------------
-	// GUI.
-	// -----------------------------------------------------------------------------
 
 	void OnGUI () {
 		#if UNITY_EDITOR
@@ -68,10 +62,6 @@ public class CannonBehaviour : MonoBehaviour {
 		}
 		#endif
 	}
-
-	// -----------------------------------------------------------------------------
-	// Firing functions.
-	// -----------------------------------------------------------------------------
 
 	public void Fire (float power){
 		Rigidbody clone;
