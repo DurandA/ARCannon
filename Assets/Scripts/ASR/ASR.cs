@@ -8,6 +8,9 @@ using System.Collections;
  * 
  * Description : class to handle calls to the Google ASR API.
  */
+using System.Collections.Generic;
+
+[RequireComponent(typeof(GameManager))]
 public class ASR : MonoBehaviour {
 
 	// -----------------------------------------------------------------------------
@@ -22,8 +25,6 @@ public class ASR : MonoBehaviour {
 	private AndroidJavaClass unityPlayer;
 	private AndroidJavaObject activity;
 
-	public CannonBehaviour currentCannon;
-
 	public AudioSource audio;
 	private AxisAudioController axisSounds;
 	private AlliesAudioController alliesSounds;
@@ -32,8 +33,7 @@ public class ASR : MonoBehaviour {
 	// Load Android ASR plugin.
 	// -----------------------------------------------------------------------------
 	
-	void Start () 
-	{
+	void Start () {
 		unityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
 		activity = unityPlayer.GetStatic<AndroidJavaObject>("currentActivity");
 
@@ -48,6 +48,9 @@ public class ASR : MonoBehaviour {
 		alliesSounds = audio.GetComponent<AlliesAudioController>();
 	}
 
+	void Update (){
+	}
+
 	void OnGUI(){
 
 		dbLevelOn = false;
@@ -55,11 +58,6 @@ public class ASR : MonoBehaviour {
 		if (GUI.Button(new Rect(Screen.width - 410, Screen.height - 450, 400, 400), "START ASR"))
 		{
 			startASR();
-		}
-
-		else if (GUI.Button (new Rect (10, Screen.height - 450, 400, 400), "Fire")) {
-			axisSounds.Fire();
-			currentCannon.Fire(80f);
 		}
 	}
 
@@ -143,6 +141,7 @@ public class ASR : MonoBehaviour {
 
 		if(order != null)
 		{
+			CannonBehaviour currentCannon = GetComponent<GameManager>().currentCannon;
 			currentCannon.StartCoroutine(currentCannon.MoveTowards(orderToVector2D(order),1f));
 		}
 	}

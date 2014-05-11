@@ -3,24 +3,27 @@ using System.Collections;
 
 public class PlayController : MonoBehaviour {
 
-	void OnStart()
+	Color textMeshColor;
+
+	void Start()
 	{
 		Screen.orientation = ScreenOrientation.LandscapeLeft;
+		textMeshColor = GetComponent<TextMesh> ().color;
 	}
 
 	// Hover system.
 	void OnMouseOver() 
 	{
-		renderer.material.color = Color.yellow;
+		GetComponent<TextMesh> ().color = Color.yellow;
 	}
 	
 	void OnMouseExit()
 	{
-		renderer.material.color = Color.white;
+		GetComponent<TextMesh> ().color = textMeshColor;
 	}
 	
 	// Click system.
-	void OnMouseUp()
+	void OnMouseDown()
 	{
 		Application.LoadLevel(1);
 	}
