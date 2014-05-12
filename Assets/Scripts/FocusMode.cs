@@ -9,10 +9,13 @@ public class FocusMode : MonoBehaviour {
 	void Start () {
 		if (CameraDevice.Instance.SetFocusMode (focusMode))
 			Debug.LogWarning (focusMode+" not available!");
+
+
 	}
 	
 	// Update is called once per frame
 	void Update () {
+
 	
 	}
 }

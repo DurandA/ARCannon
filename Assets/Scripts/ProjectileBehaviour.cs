@@ -13,12 +13,12 @@ public class ProjectileBehaviour : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		if (transform.position.y < (target!=null?target.position.y:0f))
-			Destroy (gameObject);
-	}
-
-	void OnDestroy(){
-		Transform blast = Instantiate (blastDecal, transform.position, Quaternion.identity) as Transform;
-		blast.localScale = blastDecal.localScale;
-	}
+		if (transform.rigidbody.velocity.y < 0f  && transform.position.y < (target != null ? target.position.y : 0f)) {
+			Transform blast = Instantiate (blastDecal, transform.position, Quaternion.identity) as Transform;
+			blast.localScale = blastDecal.localScale;
+			if(target != null)
+				blast.transform.parent = target;
+			Destroy(gameObject);
+		}
+	}	
 }

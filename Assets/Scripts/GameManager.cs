@@ -19,13 +19,18 @@ public class GameManager : MonoBehaviour {
 		get {return cannons[currentCannonIdx];}
 	}
 
+	public CannonBehaviour nextCannon
+	{
+		get {return cannons[(currentCannonIdx+1)%cannons.Length];}
+	}
+
 	public bool isSwitching
 	{
 		get {return _isSwitching;}
 	}
 	
 	void Start(){
-		currentCannon.enabled=true;
+		currentCannon.controlEnabled=true;
 	}
 
 	void Update(){
@@ -33,6 +38,10 @@ public class GameManager : MonoBehaviour {
 			timer -= Time.deltaTime;
 			if (timer < 0f)	
 				StartCoroutine (SwitchCannon ());
+		}
+		if (!isSwitching && Input.GetButton("Fire1")){
+			currentCannon.Fire((Input.GetAxis("Z Axis")+1f)*20f, nextCannon.transform);
+			StartCoroutine(SwitchCannon());
 		}
 	}
 
@@ -46,20 +55,26 @@ public class GameManager : MonoBehaviour {
 		}
 		#endif
 		if(!isSwitching)
-			GUI.Label (new Rect (Screen.width-80,80,40,20), timer.ToString());
+			GUI.Label (new Rect (Screen.width-80,20,40,20), timer.ToString());
 		if (!isSwitching && GUI.Button (new Rect (10, Screen.height - Screen.height/6, Screen.width/8, Screen.height/8),"FIRE")){
-			currentCannon.Fire(Input.GetAxis("Z Axis"));
+			currentCannon.Fire(10f, nextCannon.transform);
 			StartCoroutine(SwitchCannon());
 		}
-
+		GUI.Label (new Rect (Screen.width/2-100,20,200,20), currentCannon.name + " " + currentCannon.hits + " : " + nextCannon.hits + " " + nextCannon.name);
 	}
 
 	IEnumerator SwitchCannon(){
+		currentCannon.controlEnabled = false;
 		_isSwitching = true;
 		currentCannonIdx = (++currentCannonIdx < cannons.Length) ? currentCannonIdx : 0;
 		yield return new WaitForSeconds (3f);
 		timer = 30f;
 		_isSwitching = false;
+		currentCannon.controlEnabled = true;
+		//#if not UNITY_EDITOR
+		//Changing the world center is not supported at runtime
+		//Camera.main.GetComponent<QCARBehaviour> ().SetWorldCenter (currentCannon.transform.parent.GetComponent<ImageTargetBehaviour>());
+		//#endif
 	}
 
 

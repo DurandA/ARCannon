@@ -7,6 +7,7 @@ public class CannonBehaviour : MonoBehaviour {
 	public Transform shaft;
 	public Transform deck;
 	public Rigidbody projectile;
+	public Transform fire;
 
 	public bool controlEnabled=false;
 
@@ -16,13 +17,15 @@ public class CannonBehaviour : MonoBehaviour {
 	private Vector3[] trace=new Vector3[256];
 	private LineRenderer lineRenderer;
 
+	public int hits=0;
+
 	// Use this for initialization
 	void Start () {
-		lineRenderer = gameObject.AddComponent<LineRenderer>();
+		/*lineRenderer = gameObject.AddComponent<LineRenderer>();
 		lineRenderer.material = new Material(Shader.Find("Particles/Additive"));
 		lineRenderer.SetColors(Color.red, Color.yellow);
 		lineRenderer.SetWidth(0.2F, 0.2F);
-		lineRenderer.enabled = false;
+		lineRenderer.enabled = false;*/
 	}
 	
 	// Update is called once per frame
@@ -47,13 +50,21 @@ public class CannonBehaviour : MonoBehaviour {
 		}
 	}
 
-	public void Fire (float power){
+	public void Fire (float power, Transform target){
 		Rigidbody clone;
 		clone = Instantiate(projectile, output.position, output.rotation) as Rigidbody;
 		clone.transform.localScale = projectile.transform.localScale;
 		clone.velocity = output.TransformDirection(Vector3.forward * power);
+		clone.GetComponent<ProjectileBehaviour> ().target = target;
+		//StartCoroutine(TraceProjectile(clone.transform));
+	}
 
-		StartCoroutine(TraceProjectile(clone.transform));
+	public void OnTriggerEnter (Collider other) {
+		if (other.GetComponent<ProjectileBehaviour> ()) {
+			hits++;
+			Transform fire = Instantiate(this.fire,Vector3.Lerp(other.transform.position,transform.position,0.6f),Quaternion.identity) as Transform;
+			fire.parent=transform;
+		}
 	}
 
 	IEnumerator TraceProjectile (Transform projectile) {
