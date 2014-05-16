@@ -17,10 +17,15 @@ public class ASR : MonoBehaviour {
 	// Variables.
 	// -----------------------------------------------------------------------------
 	
-	private bool dbLevelOn = false;
-	private double dbLevel = 0f;
-	private double dbLevelSmoothed = 0f;	//<-- use this for the level amplitude bar.
-	private double[] levelSmoothing;
+	private bool dbLevelPushed = false;
+	private bool dbLevelToggled = false;
+	private float dbLevelSmoothed = 0f;	//<-- use this for the level amplitude bar.
+	private float dbLevelNormalized{
+		get{return Mathf.Clamp01(dbLevelSmoothed/3500);}
+	}
+	private Queue<float> buff;
+	private int Count=0; float Sum=0;
+	private float rawLevel = 0f;
 
 	private AndroidJavaClass unityPlayer;
 	private AndroidJavaObject activity;
@@ -28,6 +33,9 @@ public class ASR : MonoBehaviour {
 	public AudioSource audio;
 	private AxisAudioController axisSounds;
 	private AlliesAudioController alliesSounds;
+
+	public Texture2D microphone;
+	public Texture2D cannon;
 
 	// -----------------------------------------------------------------------------
 	// Load Android ASR plugin.
@@ -37,28 +45,49 @@ public class ASR : MonoBehaviour {
 		unityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
 		activity = unityPlayer.GetStatic<AndroidJavaObject>("currentActivity");
 
-		levelSmoothing = new double[5];
-
-		for(int i = 0 ; i < levelSmoothing.Length ; i++)
-		{
-			levelSmoothing[i] = .0d;
-		}
+		buff = new Queue<float>(32);
 
 		axisSounds = audio.GetComponent<AxisAudioController>();
 		alliesSounds = audio.GetComponent<AlliesAudioController>();
+		DebugStreamer.message = "Hello world!";
+
 	}
 
 	void Update (){
+		GameManager manager = GetComponent<GameManager> ();
+		if (!dbLevelToggled && dbLevelPushed) {
+			DebugStreamer.message="startAudioRecorder";
+			startAudioRecorder();
+		}
+		if (dbLevelToggled && !dbLevelPushed) {
+			DebugStreamer.message="stopAudioRecorder";
+			stopAudioRecorder();
+			manager.currentCannon.Fire (dbLevelNormalized*20f, manager.nextCannon.transform);
+			StartCoroutine (manager.SwitchCannon ());
+		}
+		if ((dbLevelToggled && dbLevelPushed) )
+			activity.Call("getAmplitude", "");
+		if ((dbLevelPushed))
+			manager.currentCannon.powerBar.SetPower (dbLevelNormalized);
+
+		dbLevelToggled = dbLevelPushed;
 	}
 
 	void OnGUI(){
-
-		dbLevelOn = false;
-		
-		if (GUI.Button(new Rect(Screen.width - 410, Screen.height - 450, 400, 400), "START ASR"))
-		{
-			startASR();
+		GameManager manager = GetComponent<GameManager> ();
+		if (!manager.isSwitching) {
+			/*if (dbLevelPushed){
+				float boxHeight = dbLevelNormalized*Screen.height-20;
+				GUI.Box(new Rect(Screen.width/4,Screen.height-10-boxHeight,Screen.width/6,boxHeight),"Level");
+			}*/
+			if (GUI.Button (new Rect (Screen.width - Screen.width / 6, Screen.height - Screen.height / 6, Screen.width / 8, Screen.height / 8), "Give order"))
+				startASR ();
+			dbLevelPushed = GUI.Toggle (new Rect (10, Screen.height - Screen.height / 6, Screen.width / 8, Screen.height / 8), dbLevelPushed, dbLevelPushed ? cannon : microphone);
+			if (dbLevelPushed) {
+					GUI.Label (new Rect (0, 0, 100, 40), dbLevelSmoothed+"");
+			}
 		}
+
 	}
 
 	// -----------------------------------------------------------------------------
@@ -66,22 +95,18 @@ public class ASR : MonoBehaviour {
 	// -----------------------------------------------------------------------------
 
 	void startASR()
-	{
+	{ 
 		activity.Call("startASR", "");
 	}
 
 	void startAudioRecorder()
 	{
-		while(dbLevelOn == true)
-		{
-			activity.Call("startDBMeter", "");
-		}
+		activity.Call("startDBMeter", "");
 	}
 
 	void stopAudioRecorder()
 	{
 		activity.Call("stopDBMeter", "");
-		dbLevelOn = false;
 	}
 
 	// -----------------------------------------------------------------------------
@@ -90,22 +115,18 @@ public class ASR : MonoBehaviour {
 
 	private void storeAmplitude(string msg)
 	{
-		this.dbLevel = float.Parse(msg);
-
-		double sum = .0d;
-		
-		// Shift values in the table.
-		for(int i = 1 ; i < levelSmoothing.Length ; i++)
-		{
-			levelSmoothing[i-1] = levelSmoothing[i];
-			sum+= levelSmoothing[i-1];
+		float dbLevel = float.Parse(msg);
+		rawLevel = dbLevel;
+		buff.Enqueue (dbLevel);
+		if (Count <= 28) {
+			Sum += dbLevel;
+			Count++;
 		}
-		
-		levelSmoothing[levelSmoothing.Length -1] = dbLevel;
-		sum += dbLevel;
-		
-		// Compute the average.
-		dbLevelSmoothed = sum / levelSmoothing.Length;
+		else
+			Sum+=dbLevel-buff.Dequeue();
+
+		dbLevelSmoothed = Sum / Count;
+		Debug.Log (dbLevelSmoothed);
 	}
 
 	private void onDebugFromPlugin(string msg)
@@ -172,11 +193,11 @@ public class ASR : MonoBehaviour {
 					// Set direction on y.
 					if(order[i].getOrientation() > 0)
 					{
-						y += order[i].getAngle()* (-1);
+						x += order[i].getAngle()* (-1);
 					}
 					else
 					{
-						y += order[i].getAngle();
+						x += order[i].getAngle();
 					}
 				}
 				else if(order[i].getOrientation() == 1 || order[i].getOrientation() == -1)
@@ -184,11 +205,11 @@ public class ASR : MonoBehaviour {
 					// Set direction on x.
 					if(order[i].getOrientation() > 0)
 					{
-						x += order[i].getAngle()* (-1);
+						y += order[i].getAngle()* (-1);
 					}
 					else
 					{
-						x += order[i].getAngle();
+						y += order[i].getAngle();
 					}
 				}
 

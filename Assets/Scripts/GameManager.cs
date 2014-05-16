@@ -7,8 +7,9 @@ public class GameManager : MonoBehaviour {
 	public CannonBehaviour[] cannons;
 	private int currentCannonIdx = 0;
 	private bool _isSwitching = false;
+	public GUIStyle style;
 
-	private float timer = 30f;
+	public float timer = 90f;
 	#if UNITY_EDITOR
 	string xRot = "0";
 	string yRot = "0";
@@ -55,15 +56,13 @@ public class GameManager : MonoBehaviour {
 		}
 		#endif
 		if(!isSwitching)
-			GUI.Label (new Rect (Screen.width-80,20,40,20), timer.ToString());
-		if (!isSwitching && GUI.Button (new Rect (10, Screen.height - Screen.height/6, Screen.width/8, Screen.height/8),"FIRE")){
-			currentCannon.Fire(10f, nextCannon.transform);
-			StartCoroutine(SwitchCannon());
-		}
-		GUI.Label (new Rect (Screen.width/2-100,20,200,20), currentCannon.name + " " + currentCannon.hits + " : " + nextCannon.hits + " " + nextCannon.name);
+			GUI.Label (new Rect (Screen.width-80,20,40,20), ((int)timer).ToString(), style);
+		if (GUI.Button (new Rect(10, 10, Screen.width/8, Screen.height/8),"<--"))
+		    Application.LoadLevel(0);
+		GUI.Label (new Rect (Screen.width/2-100,20,200,20), currentCannon.name + " " + currentCannon.hits + " : " + nextCannon.hits + " " + nextCannon.name, style);
 	}
 
-	IEnumerator SwitchCannon(){
+	public IEnumerator SwitchCannon(){
 		currentCannon.controlEnabled = false;
 		_isSwitching = true;
 		currentCannonIdx = (++currentCannonIdx < cannons.Length) ? currentCannonIdx : 0;

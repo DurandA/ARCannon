@@ -146,6 +146,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   target: {fileID: 0}
   blastDecal: {fileID: 400004, guid: 6e1149e70778ffb44ba86c38cad64872, type: 2}
+  explosion: {fileID: 400002, guid: 3682c35608b227141ae8ba36baed9634, type: 2}
 --- !u!135 &13500000
 SphereCollider:
   m_ObjectHideFlags: 1

@@ -5,6 +5,7 @@ public class ProjectileBehaviour : MonoBehaviour {
 
 	public Transform target;
 	public Transform blastDecal;
+	public Transform explosion;
 
 	// Use this for initialization
 	void Start () {
@@ -20,5 +21,13 @@ public class ProjectileBehaviour : MonoBehaviour {
 				blast.transform.parent = target;
 			Destroy(gameObject);
 		}
-	}	
+	}
+
+	void OnDestroy () {
+		Transform explosion = Instantiate (this.explosion, transform.position, Quaternion.identity) as Transform;
+		explosion.localScale = this.explosion.localScale;
+		if(target != null)
+			explosion.transform.parent = target;
+	}
+	
 }

@@ -14,6 +14,8 @@ public class CannonBehaviour : MonoBehaviour {
 	public Vector2 joyDirection;
 	public Vector2 asyncDirection;
 
+	public PowerBarBehaviour powerBar;
+	
 	private Vector3[] trace=new Vector3[256];
 	private LineRenderer lineRenderer;
 
@@ -25,16 +27,20 @@ public class CannonBehaviour : MonoBehaviour {
 		lineRenderer.material = new Material(Shader.Find("Particles/Additive"));
 		lineRenderer.SetColors(Color.red, Color.yellow);
 		lineRenderer.SetWidth(0.2F, 0.2F);
-		lineRenderer.enabled = false;*/
+		lineRenderer.useWorldSpace = false;
+		lineRenderer.enabled = false;*/;
 	}
 	
 	// Update is called once per frame
 	void Update () {
-		if (controlEnabled){
-			joyDirection = new Vector2 (Input.GetAxisRaw("Horizontal")*180,Input.GetAxisRaw("Vertical")*180);
-			deck.localRotation = Quaternion.Euler (0f, 0f, joyDirection.x) * Quaternion.Euler (0f, 0f, asyncDirection.x);
-			shaft.localRotation = Quaternion.Euler (joyDirection.y, 0f, 0f) * Quaternion.Euler (asyncDirection.y, 0f, 0f);
+		if (controlEnabled) {
+			joyDirection = new Vector2 (Input.GetAxisRaw ("X Axis") * 180f, Input.GetAxisRaw ("Y Axis") * 180f);
+			deck.localRotation = Quaternion.Euler (0f, 0f, joyDirection.x) * Quaternion.Euler (0f, 0f, asyncDirection.x);						shaft.localRotation = Quaternion.Euler (joyDirection.y, 0f, 0f) * Quaternion.Euler (asyncDirection.y, 0f, 0f);
+			powerBar.display = true;
+			powerBar.SetPower ((Input.GetAxisRaw ("Z Axis") + 1) / 2);
 		}
+		else
+			powerBar.display = false;
 	}
 
 	public IEnumerator MoveTowards (Vector2 direction, float playbackSpeed){
@@ -64,6 +70,7 @@ public class CannonBehaviour : MonoBehaviour {
 			hits++;
 			Transform fire = Instantiate(this.fire,Vector3.Lerp(other.transform.position,transform.position,0.6f),Quaternion.identity) as Transform;
 			fire.parent=transform;
+			Destroy(other.gameObject);
 		}
 	}
 
@@ -80,4 +87,7 @@ public class CannonBehaviour : MonoBehaviour {
 		}
 		lineRenderer.enabled = true;
 	}
+
+
+	
 }

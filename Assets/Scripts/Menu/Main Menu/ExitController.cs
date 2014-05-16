@@ -1,21 +1,26 @@
 ﻿using UnityEngine;
-using System.Collections;
 
+[RequireComponent(typeof(TextMesh))]
 public class ExitController : MonoBehaviour {
 	
-	// Hover system.
+	Color textMeshColor;
+	
+	void Start()
+	{
+		textMeshColor = GetComponent<TextMesh> ().color;
+	}
+	
 	void OnMouseOver() 
 	{
-		renderer.material.color = Color.yellow;
+		GetComponent<TextMesh> ().color = Color.red;
 	}
 	
 	void OnMouseExit()
 	{
-		renderer.material.color = Color.white;
+		GetComponent<TextMesh> ().color = textMeshColor;
 	}
 	
-	// Click system.
-	void OnMouseUp()
+	void OnMouseDown()
 	{
 		Application.Quit();
 	}
